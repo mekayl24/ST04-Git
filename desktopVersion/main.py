@@ -12,6 +12,8 @@ from mathFunctions import process_file, timeToDw, getDw, getInertia, getK, getDr
 
 TimeStamps = process_file("C:\\Users\\mekay\\Desktop\\Capstone\\Code 27Feb\\Trial 9 Data.txt")
 
+#This code belwo is to use the raspberry pi file location
+#TimeStamps = process_file("/home/pi/ST04-Git/Trial 9 Data.txt")
 dt = getsmoothedDt(TimeStamps)
 
 freq, angVel, RPMvalues = timeToDw(TimeStamps, dt)
