@@ -213,9 +213,9 @@ plt.show()
 # GPIO.setmode(GPIO.BCM)
 # GPIO.setup(gpio_pin, GPIO.IN, pull_up_down= GPIO.PUD_UP)
 
-TimeStamps = [0]
-sensor_change = [1]
-initial_time = time.time()
+# TimeStamps = [0]
+# sensor_change = [1]
+# initial_time = time.time()
 
 # x_data = []
 # y_data = []
