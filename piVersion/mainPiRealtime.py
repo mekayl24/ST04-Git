@@ -2,9 +2,7 @@ import math
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from mathFunctionsPi import process_file, timeToDw, getDw, getInertia, getK, getDragPower, getAppliedPower, getsmoothedDt
-import serial
-import threading
-import queue
+
 import time
 import RPi.GPIO as GPIO
 
@@ -28,7 +26,7 @@ def update_data():
     
     if gpio_data == 0 and sensor_change[-1] != 0:
         timestamp = time.time() - initial_time
-        #print(timestamp)
+        
         TimeStamps.append(timestamp)
         sensor_change.append(0)
     if gpio_data ==1:
@@ -48,7 +46,7 @@ def animate(frame):
     k = getK(angVel,angAccel,inertia)
     dragPow, dragTor = getDragPower(angVel, k)
     appliedPower, appliedTorque = getAppliedPower(dragTor, inertia, angAccel, angVel)
-        
+    
     if len(TimeStamps) >= 3:
         newTimeStamps = TimeStamps[2:]
         xandy.set_data(newTimeStamps, appliedPower)
@@ -56,7 +54,7 @@ def animate(frame):
         ax.autoscale_view()
     
     #plt.draw()
-    plt.pause(0.0001)
+    #plt.pause(0.0001)
     return xandy
 
 
