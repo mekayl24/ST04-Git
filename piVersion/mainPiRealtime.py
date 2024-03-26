@@ -8,6 +8,8 @@ import time
 import RPi.GPIO as GPIO
 
 # Initializations
+
+#did this transfer over?
 gpio_pin = 23
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(gpio_pin, GPIO.IN, pull_up_down = GPIO.PUD_UP)
