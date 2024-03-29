@@ -57,7 +57,48 @@ update_thread.daemon = True  # Daemonize the thread so it exits when the main pr
 update_thread.start()
 
 # Animation function
+def animate(frame):
+    global TimeStamps
+    
+    with lock:
+        dt = getsmoothedDt(TimeStamps)
+        freq, angVel, RPMvalues = timeToDw(TimeStamps, dt)
+        dw, angAccel = getDw(dt, angVel)
+        inertia = getInertia(1.5, 0.3302)
+        k = getK(angVel, angAccel, inertia)
+        dragPow, dragTor = getDragPower(angVel, k)
+        appliedPower, appliedTorque = getAppliedPower(dragTor, inertia, angAccel, angVel)
+        
+        if len(TimeStamps) >= 3:
+            newTimeStamps = TimeStamps[2:]
+            # Plot applied power
+            xandy.set_data(newTimeStamps, appliedPower)
+            # Plot angular velocity
+            xandy2.set_data(newTimeStamps, angVel)
+            # Plot angular acceleration
+            xandy3.set_data(newTimeStamps, angAccel)
+            
+            ax.relim()
+            ax.autoscale_view()
+            ax.set_xlim(newTimeStamps[-1] - 5, newTimeStamps[-1])
+    
+    return xandy, xandy2, xandy3
 
+# Plot initialization
+fig, ax = plt.subplots()
+xandy, = ax.plot([], [], lw=2, label='Applied Power')
+xandy2, = ax.plot([], [], lw=2, label='Angular Velocity')
+xandy3, = ax.plot([], [], lw=2, label='Angular Acceleration')
+plt.title('Real-time Data Plot')
+plt.xlabel('Timestamp')
+plt.ylabel('Value')
+plt.legend()
+plt.show(block=False)
+
+# Animation
+ani = FuncAnimation(fig, animate, frames=None, interval=100, save_count=10)
+plt.show()
+"""
 def animate(frame):
     global TimeStamps, appliedPower
     
@@ -91,7 +132,7 @@ plt.show(block=False)
 ani = FuncAnimation(fig, animate, frames=None, interval=100, save_count=10)
 plt.show()
 
-
+"""
 """
 def update_data():
     gpio_data = get_sensor_data()
