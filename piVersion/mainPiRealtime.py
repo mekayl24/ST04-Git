@@ -250,3 +250,4 @@ plt.ylabel('Applied Power')
 
 #ani = FuncAnimation(fig, animate, frames=None ,interval = 100, save_count= 1000)
 
+ 
