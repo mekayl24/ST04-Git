@@ -2,10 +2,10 @@ import threading
 import math
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-from mathFunctionsPi import process_file, timeToDw, getDw, getInertia, getK, getDragPower, getAppliedPower, getsmoothedDt
+from mathFunctionsPiGUI import process_file, timeToDw, getDw, getInertia, getK, getDragPower, getAppliedPower, getsmoothedDt
 import time
 import RPi.GPIO as GPIO
-from moving_averagePi import moving_average
+from moving_averagePiGUI import moving_average
 from scipy.signal import savgol_filter
 # Initialize GPIO pin
 gpio_pin = 23
@@ -64,7 +64,7 @@ update_thread = threading.Thread(target=update_data)
 update_thread.daemon = True  # Daemonize the thread so it exits when the main program ends
 update_thread.start()
 
-""" #un comment to do first plot
+ #un comment to do first plot
 
 fig1, ax1 = plt.subplots()
 xandy1, = ax1.plot([], [], lw=2)
@@ -72,7 +72,7 @@ ax1.set_title('Real-time Applied Power Plot')
 ax1.set_xlabel('Timestamp')
 ax1.set_ylabel('Applied Power')
 
-"""
+
 
 # Plot initialization for angular velocity
 fig2, ax2 = plt.subplots()
@@ -124,13 +124,13 @@ def animate_power(frame):
             xandy1.set_data(newTimeStampsPwr, appliedPower)
             ax1.relim()
             ax1.autoscale_view()
-            ax1.set_xlim(newTimeStampsPwr[-1] - 5, newTimeStampsPwr[-1])
+            #ax1.set_xlim(newTimeStampsPwr[-1] - 5, newTimeStampsPwr[-1])
     
     return xandy1
 
 # Animation function for angular velocity
 def animate_velocity(frame):
-    global TimeStamps, appliedPower
+    global TimeStamps, appliedPower, angVel
     
     with lock:
         dt = getsmoothedDt(TimeStamps)
@@ -139,14 +139,21 @@ def animate_velocity(frame):
         
         if len(TimeStamps) >= 2:
             newTimeStampsVel = TimeStamps[1:]
-            # Plot angular velocity
-            xandy2.set_data(newTimeStampsVel, angVel)
+            
+            # Apply Savitzky-Golay filter to angular velocity data if there are enough data points
+            if len(angVel) >= 5:
+                angVel_smoothed = savgol_filter(angVel, window_length=5, polyorder=3)
+            else:
+                # If there are not enough data points, use the original data without smoothing
+                angVel_smoothed = angVel
+            
+            # Plot smoothed angular velocity
+            xandy2.set_data(newTimeStampsVel, angVel_smoothed)
             ax2.relim()
             ax2.autoscale_view()
-            ax2.set_xlim(newTimeStampsVel[-1] - 5, newTimeStampsVel[-1])
+            #ax2.set_xlim(newTimeStampsVel[-1] - 5, newTimeStampsVel[-1])
     
     return xandy2
-
 # Animation function for angular acceleration
 def animate_acceleration(frame):
     global TimeStamps, appliedPower
@@ -162,7 +169,9 @@ def animate_acceleration(frame):
             xandy3.set_data(newTimeStampsAcc, angAccel)
             ax3.relim()
             ax3.autoscale_view()
-            ax3.set_xlim(newTimeStampsAcc[-1] - 5, newTimeStampsAcc[-1])
+            #ax3.set_xlim(newTimeStampsAcc[-1] - 5, newTimeStampsAcc[-1])
+    
+    
     
     return xandy3
 
@@ -191,7 +200,7 @@ def animate_time(frame):
             ax4.autoscale_view()
             
             # Set X-axis limit to show only the last 5 seconds
-            ax4.set_xlim(newTimeStamps[-1] - 5, newTimeStamps[-1])
+            #ax4.set_xlim(newTimeStamps[-1] - 5, newTimeStamps[-1])
             
             # Set the maximum value of the y-axis to 0.3
             ax4.set_ylim(0, 0.3)
@@ -221,7 +230,7 @@ def animate_time(frame):
 """
 
 # Animation for applied power
-#ani = FuncAnimation(fig1, animate_power, frames=None, interval=100, save_count=10)
+ani = FuncAnimation(fig1, animate_power, frames=None, interval=100, save_count=10)
 
 # Animation for angular velocity
 ani2 = FuncAnimation(fig2, animate_velocity, frames=None, interval=100, save_count=10)
@@ -229,14 +238,15 @@ ani2 = FuncAnimation(fig2, animate_velocity, frames=None, interval=100, save_cou
 
 # Animation for angular acceleration
 
-ani3 = FuncAnimation(fig3, animate_acceleration, frames=None, interval=100, save_count=10)
+#ani3 = FuncAnimation(fig3, animate_acceleration, frames=None, interval=100, save_count=10)
 
 
-ani4 = FuncAnimation(fig4, animate_time, frames=None, interval=100, save_count=10)
+#ani4 = FuncAnimation(fig4, animate_time, frames=None, interval=100, save_count=10)
 
+# Handle KeyboardInterrupt to save data to a CSV file
 plt.show()
-
 """
+
 # Animation function
 def animate(frame):
     global TimeStamps, appliedPower
@@ -301,3 +311,4 @@ plt.show(block=False)
 #ani = FuncAnimation(fig, animate, frames=None, interval=100, save_count=10)
 #plt.show()
 """
+

@@ -8,7 +8,7 @@ from matplotlib.animation import FuncAnimation
 import serial
 import time
 import matplotlib.animation as animation
-from moving_averagePi import moving_average
+from moving_averagePiGUI import moving_average
 #import RPi.GPIO as GPIO
 
 
