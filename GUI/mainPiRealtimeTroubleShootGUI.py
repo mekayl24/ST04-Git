@@ -2,10 +2,10 @@ import threading
 import math
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-from mathFunctionsPi import process_file, timeToDw, getDw, getInertia, getK, getDragPower, getAppliedPower, getsmoothedDt
+from mathFunctionsPiGUI import process_file, timeToDw, getDw, getInertia, getK, getDragPower, getAppliedPower, getsmoothedDt
 import time
 import RPi.GPIO as GPIO
-from moving_averagePi import moving_average
+from moving_averagePiGUI import moving_average
 from scipy.signal import savgol_filter
 # Initialize GPIO pin
 gpio_pin = 23
