@@ -10,7 +10,7 @@ from mathFunctionsPi import process_file, timeToDw, getDw, getInertia, getK, get
 
 
 
-TimeStamps = process_file("/home/pi/ST04-Git/Trial 9 Data.txt")
+TimeStamps = process_file("/home/pi/ST04-Git/Trials/Trial 10.txt")
 
 dt = getsmoothedDt(TimeStamps)
 
@@ -134,6 +134,35 @@ plt.legend()
 
 # Adjust plot layout
 plt.tight_layout()
+
+
+
+
+
+
+
+plt.figure()
+plt.plot(TimeStamps[timeInitIndex:timeFinIndex], RPMvalues[pwrInitIndex-1:pwrFinIndex-1], marker='o', linestyle='-',
+         color='b', label='Data Points') #Plotting whole curve
+
+
+# Add labels and title
+plt.xlabel('Time (seconds)')
+plt.ylabel('PRPM')
+plt.title('RPM within a all strokes')
+
+# Add gridlines
+plt.grid(True)
+
+# Show legend
+plt.legend()
+
+# Adjust plot layout
+plt.tight_layout()
+
+# Show the plot
+
+
 
 
 plt.show()
