@@ -17,10 +17,10 @@ TimeStamps = process_file("/home/pi/ST04-Git/Graphs/32 Magnets.txt")
 
 ###Moving Average Filter
 
-dt = getsmoothedDt(TimeStamps)
-
+#dt = getsmoothedDt(TimeStamps)
 
 """
+
 ###No Filter
 dtraw = []
 for i in range(len(TimeStamps)-1):
@@ -28,12 +28,12 @@ for i in range(len(TimeStamps)-1):
     dtraw.append(newStamp)  
 
 dt = dtraw
-
-
 """
+
+
 
 ###SavGol Filter
-"""
+
 dtraw = []
 for i in range(len(TimeStamps)-1):
     newStamp = TimeStamps[i+1] - TimeStamps[i] #Calculating all values
@@ -41,7 +41,7 @@ for i in range(len(TimeStamps)-1):
 
 
 dt = savgol_filter(dtraw, window_length=5, polyorder=3)
-"""
+
 
 ##########
 freq, angVel, RPMvalues = timeToDw(TimeStamps, dt)
@@ -128,10 +128,10 @@ plt.tight_layout()
 
 """
 
-
+""
 ###Acceleration with Limits
 
-
+"""
 
 plt.figure()
 
@@ -147,7 +147,7 @@ plt.legend()
 plt.tight_layout()
 
 
-
+"""
 
 
 ####Power with Limits
@@ -207,7 +207,7 @@ plt.tight_layout()
 
 """
 
-"""
+
 
 plt.figure()
 plt.plot(TimeStamps[timeInitIndex:timeFinIndex], angVel[pwrInitIndex-1:pwrFinIndex-1], marker='o', linestyle='-',
@@ -217,7 +217,7 @@ plt.plot(TimeStamps[timeInitIndex:timeFinIndex], angVel[pwrInitIndex-1:pwrFinInd
 # Add labels and title
 plt.xlabel('Time (seconds)')
 plt.ylabel('Ang Velocity (rad/s)')
-plt.title('Ang Velocity within a stroke (Savitzky-Golay Filter, 32 Magnets))')
+plt.title('Ang Velocity within a stroke (Savitzky Golay Filter, 32 Magnets))')
 
 plt.xlim(8, 35)  # Adjust x-axis limits to zoom in on a specific section
 plt.ylim(0, 20)  # Adjust y-axis limits if needed
@@ -232,7 +232,7 @@ plt.legend()
 plt.tight_layout()
 
 
-"""
+
 
 
 
