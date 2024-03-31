@@ -164,8 +164,9 @@ class GraphWindow:
         if not self.running:
             self.running = True
             self.start_time = time.time()
-            self.ani1 = FuncAnimation(self.fig, self.animate_power, frames=None, interval=100, blit=True)
-            self.ani2 = FuncAnimation(self.fig, self.animate_velocity, frames=None, interval=100, blit=True)
+            #self.ani1 = FuncAnimation(self.fig, self.animate_power, frames=None, interval=100, blit=True)
+            self.ani1 = FuncAnimation(self.fig, self.animate_power, frames=None, interval=100, save_count=10)
+            self.ani2 = FuncAnimation(self.fig, self.animate_velocity, frames=None, interval=100, save_count=10)
 
     def stop_timer(self):
         if self.running:
@@ -204,22 +205,49 @@ class GraphWindow:
                     # Update the start time of the current 5-second interval
                     interval_start_time = current_time
             
+            
+            
+            
+            
+            
+            
             time.sleep(0.01)
 
+    def update_graph(self):
+        current_time = time.time() - self.start_time
+        self.elapsed_time_label.config(text=f"Elapsed Time: {current_time:.2f} seconds")
+
+        x = np.linspace(0, 10, 100)
+        y = np.sin(x + time.time() - self.start_time)
+        y_derivative = np.gradient(y, x)
+
+        self.ax1.clear()
+        self.ax1.plot(x, y)
+        self.ax1.set_title("Sine Wave")
+        
+        self.ax2.clear()
+        self.ax2.plot(x, y_derivative)
+        self.ax2.set_title("Sine Wave Derivative")
+
+        self.canvas.draw()
+
+        if self.running:
+            self.root.after(1, self.update_graph)  # Update every second
+    
+    
     def animate_power(self, frame):
         global TimeStamps, appliedPower
-    
+        print("Animating...")
+        
+        
         with lock:
             dt = getsmoothedDt(TimeStamps)
             freq, angVelraw, RPMvalues = timeToDw(TimeStamps, dt)
             
-            
             if len(angVelraw) >= 5:
-                    angVel= savgol_filter(angVelraw, window_length=5, polyorder=3)
+                angVel = savgol_filter(angVelraw, window_length=5, polyorder=3)
             else:
-                    # If there are not enough data points, use the original data without smoothing
                 angVel = angVelraw
-            
             
             dw, angAccel = getDw(dt, angVel)
             inertia = getInertia(1.5, 0.3302)
@@ -231,35 +259,32 @@ class GraphWindow:
                 newTimeStampsPwr = TimeStamps[2:]
                 # Plot applied power
                 self.line1.set_data(newTimeStampsPwr, appliedPower)
-                self.ax1.relim()  # Corrected here
-                self.ax1.autoscale_view()  # Corrected here
-                self.ax1.set_xlim(newTimeStampsPwr[-1] - 5, newTimeStampsPwr[-1])  # Corrected here
-        
-            return self.line1
+                self.ax1.relim()  
+                self.ax1.autoscale_view()  
+                self.ax1.set_xlim(newTimeStampsPwr[0], newTimeStampsPwr[-1])  
+                self.fig.canvas.draw_idle()  # Update the plot
+
+        return self.line1,
 
     def animate_velocity(self, frame):
-        global TimeStamps, appliedPower
+        global TimeStamps
 
         with lock:
-            #dt = getsmoothedDt(TimeStamps)
-            dtraw = []
-            for i in range(len(TimeStamps)-1):
-                newStamp = TimeStamps[i+1] - TimeStamps[i] #Calculating all values
-                dtraw.append(newStamp)  
-
+            dtraw = [TimeStamps[i+1] - TimeStamps[i] for i in range(len(TimeStamps)-1)]
             dt = dtraw
-
+            print("Animating...")
             freq, angVel, RPMvalues = timeToDw(TimeStamps, dt)
             
             if len(TimeStamps) >= 2:
                 newTimeStampsVel = TimeStamps[1:]
                 # Plot angular velocity
                 self.line2.set_data(newTimeStampsVel, angVel)
-                self.ax2.relim()  # Corrected here
-                self.ax2.autoscale_view()  # Corrected here
-                #self.ax2.set_xlim(newTimeStampsVel[-1] - 5, newTimeStampsVel[-1])
-        
-        return self.line2
+                self.ax2.relim()  
+                self.ax2.autoscale_view()  
+                self.ax2.set_xlim(newTimeStampsVel[0], newTimeStampsVel[-1])
+                self.fig.canvas.draw_idle()  # Update the plot
+
+        return self.line2,
 
     def exit(self):
         if messagebox.askyesno("Exit", "Are you sure you want to exit?"):

@@ -54,12 +54,21 @@ class GraphWindow:
 
         self.exit_button = tk.Button(self.button_frame, text="Exit", bg="#3e4d87", fg="white",font=("Arial Black", 12,"bold"), relief="raised", borderwidth=3, cursor="hand2", command=self.exit)
         self.exit_button.pack(side=tk.RIGHT, padx=20, pady=20)
+        
+        ###display avg velocity & velocity
+        self.max_velocity = tk.Label(self.button_frame, text="Max Session Velocity", font=("Arial", 14), bg="white", fg="#3e4d87", relief="ridge", borderwidth=1)
+        self.max_velocity.pack(side=tk.LEFT, padx=20, pady=20) #adjust padding
+        
+        self.max_velocity = tk.Label(self.button_frame, text="Average Session Velocity", font=("Arial", 14), bg="white", fg="#3e4d87", relief="raised", borderwidth=1)
+        self.max_velocity.pack(side=tk.LEFT, padx=20, pady=20) #adjust padding
+        
+        ##display avg velocity & max velocity
 
         self.fig, (self.ax1, self.ax2) = plt.subplots(1, 2, figsize=(10,2)) #adjust the size of the graphs
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.root)
         self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-        self.elapsed_time_label = tk.Label(self.root, text="")
+        self.elapsed_time_label = tk.Label(self.root, text="", font=("Arial", 18, "bold"), bg="white", fg="#3e4d87",)
         self.elapsed_time_label.pack()
 
         self.running = False
@@ -79,22 +88,168 @@ class GraphWindow:
         current_time = time.time() - self.start_time
         self.elapsed_time_label.config(text=f"Elapsed Time: {current_time:.2f} seconds")
 
-        x = np.linspace(0, 10, 100)
-        y = np.sin(x + time.time() - self.start_time)
-        y_derivative = np.gradient(y, x)
+#         x = np.linspace(0, 10, 100)
+#         y = np.sin(x + time.time() - self.start_time)
+#         y_derivative = np.gradient(y, x)
 
-        self.ax1.clear()
-        self.ax1.plot(x, y)
-        self.ax1.set_title("Sine Wave")
+#         self.ax1.clear()
+#         self.ax1.plot(x, y)
+#         self.ax1.set_title("Sine Wave")
         
-        self.ax2.clear()
-        self.ax2.plot(x, y_derivative)
-        self.ax2.set_title("Sine Wave Derivative")
+#         self.ax2.clear()
+#         self.ax2.plot(x, y_derivative)
+#         self.ax2.set_title("Sine Wave Derivative")
+
 
         self.canvas.draw()
+    
+        # Animation for applied power
+        ani = FuncAnimation(fig1, animate_power, frames=None, interval=100, save_count=10)
+
+        # Animation for angular velocity
+        ani2 = FuncAnimation(fig2, animate_velocity, frames=None, interval=100, save_count=10)
+        
+        plt.show()
 
         if self.running:
             self.root.after(1, self.update_graph)  # Update every second
+    
+    def update_data(self):
+        global TimeStamps, sensor_change, initial_time, appliedPower, interval_start_time, dt, dtTest
+
+        while True:
+            gpio_data = get_sensor_data()
+            with lock:
+                if gpio_data == 0 and sensor_change[-1] != 0:
+                    timestamp = time.time() - initial_time
+                    TimeStamps.append(timestamp)
+                    print("TimeStamps: ", TimeStamps[-1])
+                    if len(TimeStamps) > 2:
+
+                        dtTest = (TimeStamps[-1] - TimeStamps[-2])
+                        #print("TimeStamps: ", TimeStamps[-1])
+                        #print("Dt: ", dtTest)
+
+                    sensor_change.append(0)
+                elif gpio_data == 1:
+                    sensor_change.append(1)
+
+            current_time = time.time()
+            if current_time - interval_start_time >= 5:
+                with lock:
+                    # Update max_power to the maximum power recorded in the previous 5-second interval
+                    max_power = max(appliedPower)
+                    # Update the start time of the current 5-second interval
+                    interval_start_time = current_time
+
+            time.sleep(0.01)  # Adjust sleep time as needed
+            
+    def animate_power(self, frame):
+        global TimeStamps, appliedPower
+
+        with lock:
+            dt = getsmoothedDt(TimeStamps)
+            freq, angVelraw, RPMvalues = timeToDw(TimeStamps, dt)
+
+
+            if len(angVelraw) >= 5:
+                    angVel= savgol_filter(angVelraw, window_length=5, polyorder=3)
+            else:
+                    # If there are not enough data points, use the original data without smoothing
+                angVel = angVelraw
+
+
+            dw, angAccel = getDw(dt, angVel)
+            inertia = getInertia(1.5, 0.3302)
+            k = getK(angVel, angAccel, inertia)
+            dragPow, dragTor = getDragPower(angVel, k)
+            appliedPower, appliedTorque = getAppliedPower(dragTor, inertia, angAccel, angVel)
+
+            if len(TimeStamps) >= 3:
+                newTimeStampsPwr = TimeStamps[2:]
+                # Plot applied power
+                xandy1.set_data(newTimeStampsPwr, appliedPower)
+                ax1.relim()
+                ax1.autoscale_view()
+                ax1.set_xlim(newTimeStampsPwr[-1] - 5, newTimeStampsPwr[-1])
+
+        return xandy1
+
+    # Animation function for angular velocity
+    def animate_velocity(self, frame):
+        global TimeStamps, appliedPower
+
+        with lock:
+            #dt = getsmoothedDt(TimeStamps)
+            dtraw = []
+            for i in range(len(TimeStamps)-1):
+                newStamp = TimeStamps[i+1] - TimeStamps[i] #Calculating all values
+                dtraw.append(newStamp)  
+
+            dt = dtraw
+
+            freq, angVel, RPMvalues = timeToDw(TimeStamps, dt)
+
+            if len(TimeStamps) >= 2:
+                newTimeStampsVel = TimeStamps[1:]
+                # Plot angular velocity
+                xandy2.set_data(newTimeStampsVel, angVel)
+                ax2.relim()
+                ax2.autoscale_view()
+                #ax2.set_xlim(newTimeStampsVel[-1] - 5, newTimeStampsVel[-1])
+
+        return xandy2
+
+    # Animation function for angular acceleration
+    def animate_acceleration(self, frame):
+        global TimeStamps, appliedPower
+
+        with lock:
+            dt = getsmoothedDt(TimeStamps)
+            freq, angVel, RPMvalues = timeToDw(TimeStamps, dt)
+            dw, angAccel = getDw(dt, angVel)
+
+            if len(TimeStamps) >= 3:
+                newTimeStampsAcc = TimeStamps[2:]
+                # Plot angular acceleration
+                xandy3.set_data(newTimeStampsAcc, angAccel)
+                ax3.relim()
+                ax3.autoscale_view()
+               # ax3.set_xlim(newTimeStampsAcc[-1] - 5, newTimeStampsAcc[-1])
+
+        return xandy3
+
+    def animate_time(self, frame):
+        global TimeStamps
+
+        dt = []
+        for i in range(len(TimeStamps)-1):
+            diffT = TimeStamps[i+1] - TimeStamps[i]
+            dt.append(diffT)
+
+        with lock:
+            if len(TimeStamps) >= 2:
+                newTimeStamps = TimeStamps[1:]
+                new_dt = dt
+                #new_dt = moving_average(dt, 100)  # Use only available dt data
+
+                # Update the maximum value of the last interval
+                max_dt_interval = max(new_dt)
+
+                # Plot timestamps
+                xandy4.set_data(newTimeStamps, new_dt)
+
+                # Auto-adjust Y-axis to the maximum value of the last interval
+                ax4.relim()
+                ax4.autoscale_view()
+
+                # Set X-axis limit to show only the last 5 seconds
+                #ax4.set_xlim(newTimeStamps[-1] - 5, newTimeStamps[-1])
+
+                # Set the maximum value of the y-axis to 0.3
+                ax4.set_ylim(0, 0.3)
+
+        return xandy4
 
     def exit(self):
         if messagebox.askyesno("Exit", "Are you sure you want to exit?"):
@@ -102,6 +257,9 @@ class GraphWindow:
 
 def main():
     root = tk.Tk()
+    update_thread = threading.Thread(target=update_data)
+    update_thread.daemon = True  # Daemonize the thread so it exits when the main program ends
+    update_thread.start()
     app = StartWindow(root)
     root.mainloop()
 
