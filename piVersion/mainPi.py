@@ -3,6 +3,8 @@ import math
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from mathFunctionsPi import process_file, timeToDw, getDw, getInertia, getK, getDragPower, getAppliedPower, getsmoothedDt
+from moving_averagePi import moving_average
+from scipy.signal import savgol_filter
 
 
 
@@ -10,10 +12,38 @@ from mathFunctionsPi import process_file, timeToDw, getDw, getInertia, getK, get
 
 
 
-TimeStamps = process_file("/home/pi/ST04-Git/Trials/Trial 10.txt")
+TimeStamps = process_file("/home/pi/ST04-Git/Graphs/32 Magnets.txt")
 
-dt = getsmoothedDt(TimeStamps)
 
+###Moving Average Filter
+
+#dt = getsmoothedDt(TimeStamps)
+
+"""
+
+###No Filter
+dtraw = []
+for i in range(len(TimeStamps)-1):
+    newStamp = TimeStamps[i+1] - TimeStamps[i] #Calculating all values
+    dtraw.append(newStamp)  
+
+dt = dtraw
+"""
+
+
+
+###SavGol Filter
+
+dtraw = []
+for i in range(len(TimeStamps)-1):
+    newStamp = TimeStamps[i+1] - TimeStamps[i] #Calculating all values
+    dtraw.append(newStamp)  
+
+
+dt = savgol_filter(dtraw, window_length=5, polyorder=3)
+
+
+##########
 freq, angVel, RPMvalues = timeToDw(TimeStamps, dt)
 
 
@@ -55,6 +85,9 @@ pwrFinIndex = len(appliedPower)
 # print("timeindex: ", TimeStamps[0:6])
 # print("powerindex: ", appliedPower[0:6])
 
+###Power over session
+"""
+
 plt.figure()
 plt.plot(TimeStamps[timeInitIndex:timeFinIndex], appliedPower[pwrInitIndex:pwrFinIndex], marker='o', linestyle='-',
          color='b', label='Data Points') #Plotting whole curve
@@ -74,9 +107,11 @@ plt.legend()
 # Adjust plot layout
 plt.tight_layout()
 
-# Show the plot
 
+"""
 
+####Dt graph with limits
+"""
 
 plt.figure()
 
@@ -91,9 +126,12 @@ plt.grid(True)
 plt.legend()
 plt.tight_layout()
 
+"""
 
+""
+###Acceleration with Limits
 
-
+"""
 
 plt.figure()
 
@@ -102,16 +140,20 @@ plt.plot(TimeStamps[timeInitIndex:timeFinIndex], angAccel[pwrInitIndex:pwrFinInd
 plt.xlabel('Time (seconds)')
 plt.ylabel('Ang Accel')
 plt.title('Acceleration')
-plt.xlim(0, 7.5)  # Adjust x-axis limits to zoom in on a specific section
-plt.ylim(-10, 60)  # Adjust y-axis limits if needed
+plt.xlim(8, 35)  # Adjust x-axis limits to zoom in on a specific section
+plt.ylim(-10, 20)  # Adjust y-axis limits if needed
 plt.grid(True)
 plt.legend()
 plt.tight_layout()
 
 
+"""
 
 
+####Power with Limits
 
+
+"""
 
 plt.figure()
 plt.plot(TimeStamps[timeInitIndex:timeFinIndex], appliedPower[pwrInitIndex:pwrFinIndex], marker='o', linestyle='-',
@@ -124,8 +166,8 @@ plt.ylabel('Power (Watts)')
 plt.title('Power within a single stroke')
 
 
-plt.xlim(0, 3)  # Adjust x-axis limits to zoom in on a specific section
-plt.ylim(-5, 60)  # Adjust y-axis limits if needed
+plt.xlim(8, 35)  # Adjust x-axis limits to zoom in on a specific section
+plt.ylim(0, 10)  # Adjust y-axis limits if needed
 # Add gridlines
 plt.grid(True)
 
@@ -136,13 +178,13 @@ plt.legend()
 plt.tight_layout()
 
 
+"""
 
-
-
-
+#####Ang Vel over session
+"""
 
 plt.figure()
-plt.plot(TimeStamps[timeInitIndex:timeFinIndex], RPMvalues[pwrInitIndex-1:pwrFinIndex-1], marker='o', linestyle='-',
+plt.plot(TimeStamps[timeInitIndex:timeFinIndex], angVel[pwrInitIndex-1:pwrFinIndex-1], marker='o', linestyle='-',
          color='b', label='Data Points') #Plotting whole curve
 
 
@@ -161,6 +203,35 @@ plt.legend()
 plt.tight_layout()
 
 # Show the plot
+
+
+"""
+
+
+
+plt.figure()
+plt.plot(TimeStamps[timeInitIndex:timeFinIndex], angVel[pwrInitIndex-1:pwrFinIndex-1], marker='o', linestyle='-',
+         color='b', label='Data Points') #Plotting whole curve
+
+
+# Add labels and title
+plt.xlabel('Time (seconds)')
+plt.ylabel('Ang Velocity (rad/s)')
+plt.title('Ang Velocity within a stroke (Savitzky Golay Filter, 32 Magnets))')
+
+plt.xlim(8, 35)  # Adjust x-axis limits to zoom in on a specific section
+plt.ylim(0, 20)  # Adjust y-axis limits if needed
+
+# Add gridlines
+plt.grid(True)
+
+# Show legend
+plt.legend()
+
+# Adjust plot layout
+plt.tight_layout()
+
+
 
 
 

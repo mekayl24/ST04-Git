@@ -39,6 +39,7 @@ def update_data():
             if gpio_data == 0 and sensor_change[-1] != 0:
                 timestamp = time.time() - initial_time
                 TimeStamps.append(timestamp)
+                print("TimeStamps: ", TimeStamps[-1])
                 if len(TimeStamps) > 2:
                     
                     dtTest = (TimeStamps[-1] - TimeStamps[-2])
