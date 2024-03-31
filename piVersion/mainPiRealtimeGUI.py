@@ -208,7 +208,7 @@ class GraphWindow:
 
     def animate_power(self, frame):
         global TimeStamps, appliedPower
-        
+    
         with lock:
             dt = getsmoothedDt(TimeStamps)
             freq, angVelraw, RPMvalues = timeToDw(TimeStamps, dt)
@@ -230,16 +230,16 @@ class GraphWindow:
             if len(TimeStamps) >= 3:
                 newTimeStampsPwr = TimeStamps[2:]
                 # Plot applied power
-                line1.set_data(newTimeStampsPwr, appliedPower)
-                ax1.relim()
-                ax1.autoscale_view()
-                ax1.set_xlim(newTimeStampsPwr[-1] - 5, newTimeStampsPwr[-1])
+                self.line1.set_data(newTimeStampsPwr, appliedPower)
+                self.ax1.relim()  # Corrected here
+                self.ax1.autoscale_view()  # Corrected here
+                self.ax1.set_xlim(newTimeStampsPwr[-1] - 5, newTimeStampsPwr[-1])  # Corrected here
         
-        return self.line1
+            return self.line1
 
     def animate_velocity(self, frame):
         global TimeStamps, appliedPower
-    
+
         with lock:
             #dt = getsmoothedDt(TimeStamps)
             dtraw = []
@@ -254,10 +254,10 @@ class GraphWindow:
             if len(TimeStamps) >= 2:
                 newTimeStampsVel = TimeStamps[1:]
                 # Plot angular velocity
-                line2.set_data(newTimeStampsVel, angVel)
-                ax2.relim()
-                ax2.autoscale_view()
-                #ax2.set_xlim(newTimeStampsVel[-1] - 5, newTimeStampsVel[-1])
+                self.line2.set_data(newTimeStampsVel, angVel)
+                self.ax2.relim()  # Corrected here
+                self.ax2.autoscale_view()  # Corrected here
+                #self.ax2.set_xlim(newTimeStampsVel[-1] - 5, newTimeStampsVel[-1])
         
         return self.line2
 
