@@ -41,7 +41,7 @@ def getsmoothedDt(TimeStamps):
     for i in range(len(TimeStamps)-1):
         newStamp = TimeStamps[i+1] - TimeStamps[i] #Calculating all values
         dtraw.append(newStamp)  
-    dt = moving_average(dtraw, 32)
+    dt = moving_average(dtraw, 8)
     return dt
     
     
@@ -54,7 +54,7 @@ def timeToDw(TimeStamps, dt):
     RPMvalues = []
     for i in range(len(TimeStamps)-1):
         newStamp = dt[i] #Calculating all values
-        frequency = (1/newStamp)/16
+        frequency = (1/newStamp)/8
         angularVelocity = 2*math.pi*frequency
         RPM = angularVelocity * (60/ (2*math.pi))
 

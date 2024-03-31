@@ -12,35 +12,37 @@ from scipy.signal import savgol_filter
 
 
 
-TimeStamps = process_file("/home/pi/ST04-Git/Graphs/32 Magnets.txt")
+TimeStamps = process_file("/home/pi/ST04-Git/Graphs/8 Magnets 3 Strokes.txt")
 
 
 ###Moving Average Filter
 
-#dt = getsmoothedDt(TimeStamps)
+dt = getsmoothedDt(TimeStamps)
 
-"""
+
 
 ###No Filter
+"""
 dtraw = []
 for i in range(len(TimeStamps)-1):
     newStamp = TimeStamps[i+1] - TimeStamps[i] #Calculating all values
     dtraw.append(newStamp)  
 
 dt = dtraw
+
 """
-
-
 
 ###SavGol Filter
 
-dtraw = []
+dtraw = dt
 for i in range(len(TimeStamps)-1):
     newStamp = TimeStamps[i+1] - TimeStamps[i] #Calculating all values
     dtraw.append(newStamp)  
 
 
 dt = savgol_filter(dtraw, window_length=5, polyorder=3)
+
+
 
 
 ##########
@@ -153,7 +155,7 @@ plt.tight_layout()
 ####Power with Limits
 
 
-"""
+
 
 plt.figure()
 plt.plot(TimeStamps[timeInitIndex:timeFinIndex], appliedPower[pwrInitIndex:pwrFinIndex], marker='o', linestyle='-',
@@ -166,7 +168,7 @@ plt.ylabel('Power (Watts)')
 plt.title('Power within a single stroke')
 
 
-plt.xlim(8, 35)  # Adjust x-axis limits to zoom in on a specific section
+plt.xlim(17.5, 21)  # Adjust x-axis limits to zoom in on a specific section
 plt.ylim(0, 10)  # Adjust y-axis limits if needed
 # Add gridlines
 plt.grid(True)
@@ -178,7 +180,7 @@ plt.legend()
 plt.tight_layout()
 
 
-"""
+
 
 #####Ang Vel over session
 """
@@ -217,10 +219,10 @@ plt.plot(TimeStamps[timeInitIndex:timeFinIndex], angVel[pwrInitIndex-1:pwrFinInd
 # Add labels and title
 plt.xlabel('Time (seconds)')
 plt.ylabel('Ang Velocity (rad/s)')
-plt.title('Ang Velocity within a stroke (Savitzky Golay Filter, 32 Magnets))')
+plt.title('Ang Velocity within a stroke (Moving Average Filter, 8 Magnets))')
 
-plt.xlim(8, 35)  # Adjust x-axis limits to zoom in on a specific section
-plt.ylim(0, 20)  # Adjust y-axis limits if needed
+plt.xlim(17.5, 21)  # Adjust x-axis limits to zoom in on a specific section
+plt.ylim(0, 15)  # Adjust y-axis limits if needed
 
 # Add gridlines
 plt.grid(True)
