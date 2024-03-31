@@ -1,270 +1,118 @@
-
-import math
+import tkinter as tk
+from tkinter import messagebox
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.animation import FuncAnimation
-from mathFunctionsPi import process_file, timeToDw, getDw, getInertia, getK, getDragPower, getAppliedPower, getsmoothedDt
-
-
-
-
-
-
-
-TimeStamps = process_file("/home/pi/ST04-Git/Trials/Trial 10.txt")
-
-dt = getsmoothedDt(TimeStamps)
-
-freq, angVel, RPMvalues = timeToDw(TimeStamps, dt)
-
-
-dw, angAccel = getDw(dt,angVel)
-inertia =(getInertia(1.5, 0.3302))
-k = getK(angVel,angAccel,inertia)
-dragPow, dragTor = getDragPower(angVel, k)
-appliedPower, appliedTorque = getAppliedPower(dragTor, inertia, angAccel, angVel)
-
-
-
-
-#print(TimeStamps.index(36.903112)) #Finding when seconds 37 and 38 are, manually
-#print(TimeStamps.index(38.072464))
-print("Lenght of Timestamps: ", len(TimeStamps))
-print("Lenght of power values: ", len(appliedPower))
-
-
-
-# timestamps is offset from appliedpower because it differentiates twice 
-
-
-timeInitIndex = 3
-timeFinIndex = len(TimeStamps)
-pwrInitIndex = 1
-pwrFinIndex = len(appliedPower)
-
-# sizetime = timeFinIndex - timeInitIndex
-# sizepwr = pwrFinIndex - pwrInitIndex
-
-# print("Actual size of time: ", sizetime)
-# print("Actual size of pwr: ", sizepwr)
-
-
-
-
-
-#### Debug code, just trying to see what values output for these indices
-# print("timeindex: ", TimeStamps[0:6])
-# print("powerindex: ", appliedPower[0:6])
-
-plt.figure()
-plt.plot(TimeStamps[timeInitIndex:timeFinIndex], appliedPower[pwrInitIndex:pwrFinIndex], marker='o', linestyle='-',
-         color='b', label='Data Points') #Plotting whole curve
-
-
-# Add labels and title
-plt.xlabel('Time (seconds)')
-plt.ylabel('Power (Watts)')
-plt.title('Power within a all strokes')
-
-# Add gridlines
-plt.grid(True)
-
-# Show legend
-plt.legend()
-
-# Adjust plot layout
-plt.tight_layout()
-
-# Show the plot
-
-
-
-plt.figure()
-
-## Zoomed in graph
-plt.plot(TimeStamps[timeInitIndex:timeFinIndex], dt[timeInitIndex-1:timeFinIndex], marker='o', linestyle='-', color='b', label='Zoomed In')
-plt.xlabel('Time (seconds)')
-plt.ylabel('Dt')
-plt.title('Dt vs Time stamps')
-plt.xlim(0, 10)  # Adjust x-axis limits to zoom in on a specific section
-plt.ylim(0, 0.2)  # Adjust y-axis limits if needed
-plt.grid(True)
-plt.legend()
-plt.tight_layout()
-
-
-
-
-
-plt.figure()
-
-## Zoomed in graph
-plt.plot(TimeStamps[timeInitIndex:timeFinIndex], angAccel[pwrInitIndex:pwrFinIndex], marker='o', linestyle='-', color='b', label='Zoomed In')
-plt.xlabel('Time (seconds)')
-plt.ylabel('Ang Accel')
-plt.title('Acceleration')
-plt.xlim(0, 7.5)  # Adjust x-axis limits to zoom in on a specific section
-plt.ylim(-10, 60)  # Adjust y-axis limits if needed
-plt.grid(True)
-plt.legend()
-plt.tight_layout()
-
-
-
-
-
-
-plt.figure()
-plt.plot(TimeStamps[timeInitIndex:timeFinIndex], appliedPower[pwrInitIndex:pwrFinIndex], marker='o', linestyle='-',
-         color='b', label='Data Points') #Plotting whole curve
-
-
-# Add labels and title
-plt.xlabel('Time (seconds)')
-plt.ylabel('Power (Watts)')
-plt.title('Power within a single stroke')
-
-
-plt.xlim(0, 3)  # Adjust x-axis limits to zoom in on a specific section
-plt.ylim(-5, 60)  # Adjust y-axis limits if needed
-# Add gridlines
-plt.grid(True)
-
-# Show legend
-plt.legend()
-
-# Adjust plot layout
-plt.tight_layout()
-
-
-
-
-
-
-
-plt.figure()
-plt.plot(TimeStamps[timeInitIndex:timeFinIndex], RPMvalues[pwrInitIndex-1:pwrFinIndex-1], marker='o', linestyle='-',
-         color='b', label='Data Points') #Plotting whole curve
-
-
-# Add labels and title
-plt.xlabel('Time (seconds)')
-plt.ylabel('PRPM')
-plt.title('RPM within a all strokes')
-
-# Add gridlines
-plt.grid(True)
-
-# Show legend
-plt.legend()
-
-# Adjust plot layout
-plt.tight_layout()
-
-# Show the plot
-
-
-
-
-plt.show()
-# Show the plot
-
-# Process the numbers using the defined function
-#processed_numbers = process_numbers(numbers_list)
-
-
-
-
-
-
-###This is code for trying to animate with the raspberry pi, wont work on desktop
-
-
-# def animate(frames):
-
-#     TimeStamps = []
-
-
-#     while True:
-
-
-#         #line = (ser.readline().decode().strip())
-
-#         gpio_data = GPIO.input(gpio_pin)
+import numpy as np
+import time
+import threading
+
+class StartWindow:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Start Window")
+        self.root.attributes('-fullscreen', True)
+
+        self.background_image = tk.PhotoImage(file="dark water 2.png")
+        self.background_label = tk.Label(root, image=self.background_image)
+        self.background_label.place(x=0, y=0, relwidth=1, relheight=1)
         
-#         if gpio_data == 0 and sensor_change[-1] != 0:
-#             timestamp = time.time() - initial_time
-#             TimeStamps.append(timestamp)
-#             print("Timestamp: ",timestamp)
-#             sensor_change.append(0)
-#             #print(sensor_change)
-#         if gpio_data == 1:
-#             sensor_change.append(1)
-#         #time.sleep(0.1)
+        self.title_label = tk.Label(root, text="Sprint Kayak Ergometer Capstone ST04", font=("Arial Black", 40, "bold"), height = 1, bg="#3e4d87", fg="white", relief="raised", borderwidth=5)
+        self.title_label.pack(pady=(300, 50)) #adjust padding
 
+        self.enter_button = tk.Button(root, text="Enter", bg="black", fg="white",font=("Arial Black", 24,"bold"), relief="raised", borderwidth=3, cursor="hand2", command=self.switch_to_graph)
+        self.enter_button.pack()
 
-#         #timeValue = float(line)
-#         #TimeStamps.append(timeValue)
+    def switch_to_graph(self):
+        self.root.attributes('-fullscreen', False)
+        self.root.destroy()
+        GraphWindow()
 
-#         dt, freq, angVel, RPMvalues = timeToDw(TimeStamps)
-#         dw, angAccel = getDw(dt,angVel)
-#         inertia =(getInertia(1.5, 0.3302))
-#         k = getK(angVel,angAccel,inertia)
-#         dragPow, dragTor = getDragPower(angVel, k)
-#         appliedPower, appliedTorque = getAppliedPower(dragTor, inertia, angAccel, angVel)
-#         if len(TimeStamps)>= 3:
-#             newTimeStamps = TimeStamps[2:]
-#             #print("Time:", newTimeStamps)
-#             #print("Power: ", appliedPower)
-#             xandy.set_data(newTimeStamps,appliedPower)
-#             ax.relim()
-#             ax.autoscale_view()
-#         plt.draw()
-#         #plt.pause(0.0001)
-#         #return xandy
+class GraphWindow:
+    def __init__(self):
+        self.root = tk.Tk()
+        self.root.title("Graph Window")
+        self.root.attributes('-fullscreen', True)
+
+        self.background_image = tk.PhotoImage(file="dark water 2.png")
+        self.background_label = tk.Label(self.root, image=self.background_image)
+        self.background_label.place(x=0, y=0, relwidth=1, relheight=1)
         
-# def getSensorData():
-#     gpio_pin = 23
+        # Create a frame for the buttons
+        self.button_frame = tk.Frame(self.root)
+        self.button_frame.pack(side=tk.TOP, fill=tk.X)
 
-#     GPIO.setmode(GPIO.BCM)
-#     GPIO.setup(gpio_pin, GPIO.IN, pull_up_down= GPIO.PUD_UP)
+        self.start_button = tk.Button(self.button_frame, text="Start", bg="#3e4d87", fg="white",font=("Arial Black", 12,"bold"), relief="raised", borderwidth=3, cursor="hand2", command=self.start_timer)
+        self.start_button.pack(side=tk.LEFT, padx=20, pady=20)
 
+        self.stop_button = tk.Button(self.button_frame, text="Stop", bg="#3e4d87", fg="white",font=("Arial Black", 12,"bold"), relief="raised", borderwidth=3, cursor="hand2", command=self.stop_timer)
+        self.stop_button.pack(side=tk.LEFT, padx=20, pady=20)
 
- 
-        
-#     gpio_data = GPIO.input(gpio_pin)
+        self.exit_button = tk.Button(self.button_frame, text="Exit", bg="#3e4d87", fg="white",font=("Arial Black", 12,"bold"), relief="raised", borderwidth=3, cursor="hand2", command=self.exit)
+        self.exit_button.pack(side=tk.RIGHT, padx=20, pady=20)
 
-#     print("Data: ", gpio_data)
-        
-#     time.sleep(1)
-        
-        
+        self.fig, (self.ax1, self.ax2) = plt.subplots(1, 2, figsize=(10,2)) #adjust the size of the graphs
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.root)
+        self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
+        self.elapsed_time_label = tk.Label(self.root, text="")
+        self.elapsed_time_label.pack()
 
-#ser = serial.Serial('COM5', 9600)
+        self.running = False
+        self.start_time = None
 
-# gpio_pin = 23
+        # Initialize variables for animations
+        self.line1, = self.ax1.plot([], [], lw=2)
+        self.line2, = self.ax2.plot([], [], lw=2)
 
-# GPIO.setmode(GPIO.BCM)
-# GPIO.setup(gpio_pin, GPIO.IN, pull_up_down= GPIO.PUD_UP)
+        # Initialize update thread
+        self.update_thread = threading.Thread(target=self.update_data)
+        self.update_thread.daemon = True
+        self.update_thread.start()
 
-# TimeStamps = [0]
-# sensor_change = [1]
-# initial_time = time.time()
+    def start_timer(self):
+        if not self.running:
+            self.running = True
+            self.start_time = time.time()
+            self.ani1 = FuncAnimation(self.fig, self.animate_power, frames=None, interval=100, blit=True)
+            self.ani2 = FuncAnimation(self.fig, self.animate_velocity, frames=None, interval=100, blit=True)
 
-# x_data = []
-# y_data = []
-# fig, ax = plt.subplots()
-# xandy, = ax.plot([], [], lw=2)
+    def stop_timer(self):
+        if self.running:
+            self.running = False
+            self.ani1.event_source.stop()
+            self.ani2.event_source.stop()
 
-# plt.title('Real-time Applied Power Plot')
-# plt.xlabel('Timestamp')
-# plt.ylabel('Applied Power')
+    def update_data(self):
+        global TimeStamps
+        while True:
+            # Update your data here
+            time.sleep(0.01)
 
-# plt.show(block=False)
+    def animate_power(self, frame):
+        # Update your applied power data here
+        x = np.linspace(0, 10, 100)
+        y = np.sin(x + time.time() - self.start_time)
+        self.line1.set_data(x, y)
+        self.ax1.set_title("Sine Wave")
+        return self.line1,
 
+    def animate_velocity(self, frame):
+        # Update your angular velocity data here
+        x = np.linspace(0, 10, 100)
+        y = np.cos(x + time.time() - self.start_time)
+        self.line2.set_data(x, y)
+        self.ax2.set_title("Cosine Wave")
+        return self.line2,
 
+    def exit(self):
+        if messagebox.askyesno("Exit", "Are you sure you want to exit?"):
+            self.root.destroy()
 
-# animate(frames = None)
+def main():
+    root = tk.Tk()
+    app = StartWindow(root)
+    root.mainloop()
 
-#ani = FuncAnimation(fig, animate, frames=None ,interval = 100, save_count= 1000)
-
+if __name__ == "__main__":
+    main()
