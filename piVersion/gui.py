@@ -91,6 +91,15 @@ class GraphWindow:
         self.ax2.plot(x, y_derivative)
         self.ax2.set_title("Sine Wave Derivative")
 
+
+
+        self.ax1.set_xlim(0, 10)
+        self.ax1.set_ylim(0, 100)
+
+        self.ax2.set_xlim(0, 20)
+        self.ax2.set_ylim(0, 50)
+
+
         self.canvas.draw()
 
         if self.running:

@@ -27,18 +27,12 @@ GPIO.setup(gpio_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 TimeStamps = []
 sensor_change = [1]
 initial_time = time.time()
-
+appliedPower = [1]
 dtTest = []
-
-
 newTimeStampsPwr = [0]
 newTimeStampsVel = [0]
 appliedPower = [0]
-#angVel = [0,0]
-#angVelraw = [0]
-
-
-
+angVel = [0]
 #max_power = 0.0
 
 interval_start_time = initial_time 
@@ -72,7 +66,7 @@ def update_data():
                 sensor_change.append(1)
         
         current_time = time.time()
-        if current_time - interval_start_time >= 5 & len(appliedPower)> 1:
+        if current_time - interval_start_time >= 5:
             with lock:
                 # Update max_power to the maximum power recorded in the previous 5-second interval
                 max_power = max(appliedPower)
@@ -115,8 +109,6 @@ plot2 = []
 
 # Animation function
 # Animation function for applied power
-
-"""
 def animate_power(frame):
     global TimeStamps, appliedPower, plot1, plot2
     
@@ -193,7 +185,7 @@ def animate_velocity(frame):
 
 #plt.show()
 
-"""
+
 class StartWindow:
     def __init__(self, root):
         self.root = root
@@ -259,7 +251,7 @@ class GraphWindow:
             self.running = False
 
     def update_graph(self):
-        global TimeStamps, appliedPower, plot1, plot2, angVel, newTimeStampsPwr, newTimeStampsVel, appliedPower, angVelraw
+        global TimeStamps, appliedPower, plot1, plot2, newTimeStampsPwr, newTimeStampsVel, appliedPower, angVel
         current_time = time.time() - self.start_time
         self.elapsed_time_label.config(text=f"Elapsed Time: {current_time:.2f} seconds")
 
@@ -281,15 +273,6 @@ class GraphWindow:
             dragPow, dragTor = getDragPower(angVel, k)
             appliedPower, appliedTorque = getAppliedPower(dragTor, inertia, angAccel, angVel)
             
-            if len(TimeStamps) < 2:
-                
-                newTimeStampsPwr = [0]
-                newTimeStampsVel = [0]
-                appliedPower = [0]
-                angVel = [0]
-                angVelraw = [0]
-                                
-                
             if len(TimeStamps) >= 3:
                 newTimeStampsPwr = TimeStamps[2:]
                 # Plot applied power
@@ -303,11 +286,7 @@ class GraphWindow:
                 newTimeStampsVel = TimeStamps[1:]
             # Plot angular velocity
                 plot2 = [newTimeStampsVel, angVel]
-            #print("NewTimestampspwr: ", newTimeStampsPwr)
-            #print("Applied Power:  ", appliedPower)
-            #print("newtimestamps vel: ",newTimeStampsVel)
-            #print("angVel: ", angVel)
-            #print("angvel raw: ", angVelraw)
+            
             
             x = newTimeStampsPwr
             y = appliedPower

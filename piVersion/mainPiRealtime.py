@@ -139,6 +139,7 @@ def animate_power(frame):
             ax1.relim()
             ax1.autoscale_view()
             ax1.set_xlim(newTimeStampsPwr[-1] - 5, newTimeStampsPwr[-1])
+            print(newTimeStampsPwr[-1] - 5, newTimeStampsPwr[-1])
     
     return xandy1
 

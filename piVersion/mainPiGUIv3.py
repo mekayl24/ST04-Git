@@ -39,7 +39,10 @@ appliedPower = [0]
 
 
 
-#max_power = 0.0
+max_power = 0
+max_velocity = 0
+avg_power = 0
+avg_velocity = 0
 
 interval_start_time = initial_time 
 # Lock for thread safety
@@ -113,87 +116,6 @@ plot2 = []
 
 
 
-# Animation function
-# Animation function for applied power
-
-"""
-def animate_power(frame):
-    global TimeStamps, appliedPower, plot1, plot2
-    
-    with lock:
-        dt = getsmoothedDt(TimeStamps)
-        freq, angVelraw, RPMvalues = timeToDw(TimeStamps, dt)
-        
-        
-        if len(angVelraw) >= 5:
-                angVel= savgol_filter(angVelraw, window_length=5, polyorder=3)
-        else:
-                # If there are not enough data points, use the original data without smoothing
-            angVel = angVelraw
-        
-        
-        dw, angAccel = getDw(dt, angVel)
-        inertia = getInertia(1.5, 0.3302)
-        k = getK(angVel, angAccel, inertia)
-        dragPow, dragTor = getDragPower(angVel, k)
-        appliedPower, appliedTorque = getAppliedPower(dragTor, inertia, angAccel, angVel)
-        
-        if len(TimeStamps) >= 3:
-            newTimeStampsPwr = TimeStamps[2:]
-            # Plot applied power
-            #xandy1.set_data(newTimeStampsPwr, appliedPower)
-            #ax1.relim()
-            #ax1.autoscale_view()
-            #ax1.set_xlim(newTimeStampsPwr[-1] - 5, newTimeStampsPwr[-1])
-            plot1 = [newTimeStampsPwr, appliedPower]
-             
-            
-            
-            
-            
-    print(plot1)
-    return plot1
-
-# Animation function for angular velocity
-def animate_velocity(frame):
-    global TimeStamps, appliedPower, plot2 , plot1
-    
-    with lock:
-        #dt = getsmoothedDt(TimeStamps)
-        dtraw = []
-        for i in range(len(TimeStamps)-1):
-            newStamp = TimeStamps[i+1] - TimeStamps[i] #Calculating all values
-            dtraw.append(newStamp)  
-
-        dt = dtraw
-
-        freq, angVel, RPMvalues = timeToDw(TimeStamps, dt)
-        
-        if len(TimeStamps) >= 2:
-            newTimeStampsVel = TimeStamps[1:]
-            # Plot angular velocity
-            plot2 = [newTimeStampsVel, angVel]
-            
-            
-            #xandy2.set_data(newTimeStampsVel, angVel)
-            #ax2.relim()
-            #ax2.autoscale_view()
-            #ax2.set_xlim(newTimeStampsVel[-1] - 5, newTimeStampsVel[-1])
-    print(plot2)
-    return plot2
-
-
-
-# Animation for applied power
-#ani = FuncAnimation(fig1, animate_power, frames=None, interval=100, save_count=10)
-
-# Animation for angular velocity
-#ani2 = FuncAnimation(fig2, animate_velocity, frames=None, interval=100, save_count=10)
-
-
-#plt.show()
-
-"""
 class StartWindow:
     def __init__(self, root):
         self.root = root
@@ -204,10 +126,10 @@ class StartWindow:
         self.background_label = tk.Label(root, image=self.background_image)
         self.background_label.place(x=0, y=0, relwidth=1, relheight=1)
         
-        self.title_label = tk.Label(root, text="Sprint Kayak Ergometer Capstone ST04", font=("Arial Black", 40, "bold"), height = 1, bg="#3e4d87", fg="white", relief="raised", borderwidth=5)
-        self.title_label.pack(pady=(300, 50)) #adjust padding
+        self.title_label = tk.Label(root, text="Sprint Kayak Ergometer Capstone ST04", font=("Arial Black", 30, "bold"), height = 1, bg="#3e4d87", fg="white", relief="raised", borderwidth=5)
+        self.title_label.pack(pady=(250, 50)) #adjust padding
 
-        self.enter_button = tk.Button(root, text="Enter", bg="black", fg="white",font=("Arial Black", 24,"bold"), relief="raised", borderwidth=3, cursor="hand2", command=self.switch_to_graph)
+        self.enter_button = tk.Button(root, text="Enter", bg="black", fg="white",font=("Arial Black", 20,"bold"), relief="raised", borderwidth=3, cursor="hand2", command=self.switch_to_graph)
         self.enter_button.pack()
 
     def switch_to_graph(self):
@@ -225,29 +147,57 @@ class GraphWindow:
         self.background_label = tk.Label(self.root, image=self.background_image)
         self.background_label.place(x=0, y=0, relwidth=1, relheight=1)
         
+        
+        #variables initializing
+        self.max_power = 0
+        
         # Create a frame for the buttons
-        self.button_frame = tk.Frame(self.root)
+        self.button_frame = tk.Frame(self.root, bg="white")
         self.button_frame.pack(side=tk.TOP, fill=tk.X)
 
         self.start_button = tk.Button(self.button_frame, text="Start", bg="#3e4d87", fg="white",font=("Arial Black", 12,"bold"), relief="raised", borderwidth=3, cursor="hand2", command=self.start_timer)
-        self.start_button.pack(side=tk.LEFT, padx=20, pady=20)
+        self.start_button.pack(side=tk.LEFT, padx=10, pady=20)
 
         self.stop_button = tk.Button(self.button_frame, text="Stop", bg="#3e4d87", fg="white",font=("Arial Black", 12,"bold"), relief="raised", borderwidth=3, cursor="hand2", command=self.stop_timer)
-        self.stop_button.pack(side=tk.LEFT, padx=20, pady=20)
+        self.stop_button.pack(side=tk.LEFT, padx=10, pady=20)
 
         self.exit_button = tk.Button(self.button_frame, text="Exit", bg="#3e4d87", fg="white",font=("Arial Black", 12,"bold"), relief="raised", borderwidth=3, cursor="hand2", command=self.exit)
-        self.exit_button.pack(side=tk.RIGHT, padx=20, pady=20)
+        self.exit_button.pack(side=tk.RIGHT, padx=10, pady=20)
+        
+        ###display avg velocity & velocity
+        self.max_velocity = tk.Label(self.button_frame, text="", font=("Arial", 12), bg="white", fg="#3e4d87", height=1)
+        self.max_velocity.pack(side=tk.LEFT, padx=10, pady=10) #adjust padding
+       
+        self.avg_velocity = tk.Label(self.button_frame, text="", font=("Arial", 12), bg="white", fg="#3e4d87", height=1)
+        self.avg_velocity.pack(side=tk.LEFT, padx=10, pady=10) #adjust padding
+       
+        ##display avg velocity & max power
+       
+        self.avg_power = tk.Label(self.button_frame, text="", font=("Arial", 12), bg="white", fg="#3e4d87", height=1)
+        self.avg_power.pack(side=tk.RIGHT, padx=10, pady=10) #adjust padding
+       
+        self.max_power = tk.Label(self.button_frame, text="", font=("Arial", 12), bg="white", fg="#3e4d87", height=1)
+        self.max_power.pack(side=tk.RIGHT, padx=10, pady=10) #adjust padding
 
         self.fig, (self.ax1, self.ax2) = plt.subplots(1, 2, figsize=(10,2)) #adjust the size of the graphs
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.root)
         self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-        self.elapsed_time_label = tk.Label(self.root, text="")
-        self.elapsed_time_label.pack()
+        self.elapsed_time_label = tk.Label(self.root, text="", font=("Arial", 20, "bold"), bg="white", fg="#3e4d87")
+        self.elapsed_time_label.pack(side = tk.BOTTOM, fill=tk.X)
 
         self.running = False
         self.start_time = None
+        
+        """self.ax1.set_xlim(0, 5)  # Set custom x-axis limits
+        self.ax1.set_ylim(0, 6)  # Set custom y-axis limits
+        self.ax1.set_title("Custom Title for Applied Power")  # Set custom title for the first plot
 
+        self.ax2.set_xlim(0, 7)  # Set custom x-axis limits for the second plot
+        self.ax2.set_ylim(0, 9)  # Set custom y-axis limits for the second plot
+        self.ax2.set_title("Custom Title for Angular Velocity")  # Set custom title for the second plot
+         """   
+    
     def start_timer(self):
         if not self.running:
             self.running = True
@@ -259,10 +209,15 @@ class GraphWindow:
             self.running = False
 
     def update_graph(self):
-        global TimeStamps, appliedPower, plot1, plot2, angVel, newTimeStampsPwr, newTimeStampsVel, appliedPower, angVelraw
+        global TimeStamps, appliedPower, plot1, plot2, angVel, newTimeStampsPwr, newTimeStampsVel, appliedPower,angVelraw, max_power, max_velocity, avg_power, avg_velocity
         current_time = time.time() - self.start_time
         self.elapsed_time_label.config(text=f"Elapsed Time: {current_time:.2f} seconds")
-
+        ##velocity and power computations and displays
+        self.max_velocity.config(text=f"Max Velocity: {max_velocity:.2f} m/s")
+        self.avg_velocity.config(text=f"Avg Velocity: {avg_velocity:.2f} m/s")
+        self.max_power.config(text=f"Max Power: {max_power:.2f} W")
+        self.avg_power.config(text=f"Avg Power: {avg_power:.2f} W")
+        #self.ax1.set_xlim(0, 10) 
         with lock:
             dt = getsmoothedDt(TimeStamps)
             freq, angVelraw, RPMvalues = timeToDw(TimeStamps, dt)
@@ -278,6 +233,7 @@ class GraphWindow:
             dw, angAccel = getDw(dt, angVel)
             inertia = getInertia(1.5, 0.3302)
             k = getK(angVel, angAccel, inertia)
+            
             dragPow, dragTor = getDragPower(angVel, k)
             appliedPower, appliedTorque = getAppliedPower(dragTor, inertia, angAccel, angVel)
             
@@ -298,7 +254,10 @@ class GraphWindow:
                 #ax1.autoscale_view()
                 #ax1.set_xlim(newTimeStampsPwr[-1] - 5, newTimeStampsPwr[-1])
                 plot1 = [newTimeStampsPwr, appliedPower]
-                 
+                self.ax1.relim()
+                self.ax1.autoscale_view()
+                #self.ax1.set_xlim(0, 10)  # Changed this line
+                #print(newTimeStampsPwr[-1]-5, newTimeStampsPwr[-1])
             if len(TimeStamps) >= 2:
                 newTimeStampsVel = TimeStamps[1:]
             # Plot angular velocity
@@ -313,15 +272,52 @@ class GraphWindow:
             y = appliedPower
             x2 = newTimeStampsVel
             y2 = angVel
+            
+            max_power = max(appliedPower)
+            
+            max_velocity = max(angVel)
+            
+            avg_power = sum(appliedPower) / len(appliedPower)
+            
+            avg_velocity = sum(angVel) / len(angVel)
+            
+            
+            
 
         self.ax1.clear()
         self.ax1.plot(x, y)
         self.ax1.set_title("Applied Power in a Stroke")
         
+        
         self.ax2.clear()
         self.ax2.plot(x2, y2)
         self.ax2.set_title("Angular Velocity")
+        
+        self.ax1.set_xlabel('Time (seconds)')  # Add x-axis title for the first subplot
+        self.ax1.set_ylabel('Applied Power (W)')  # Add y-axis title for the first subplot
 
+        self.ax2.set_xlabel('Time (seconds)')  # Add x-axis title for the second subplot
+        self.ax2.set_ylabel('Angular Velocity (rad/s)')  # Add y-axis title for the second subplot
+
+        #self.ax1.set_xlim(0, 10)
+        #self.ax1.set_ylim(0, 100)
+
+        #self.ax2.set_xlim(0, 20)
+        #self.ax2.set_ylim(0, 50)
+
+        if len(TimeStamps) > 2:
+            
+            interval_start_time = max(TimeStamps[-1] - 5, 0)
+
+    # Update the x-axis limits of the first subplot
+            self.ax1.set_xlim(interval_start_time, TimeStamps[-1])
+
+    # Update the x-axis limits of the second subplot
+            #self.ax2.set_xlim(interval_start_time, TimeStamps[-1])
+
+        
+        
+        
         self.canvas.draw()
 
         if self.running:

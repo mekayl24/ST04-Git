@@ -54,7 +54,7 @@ def timeToDw(TimeStamps, dt):
     RPMvalues = []
     for i in range(len(TimeStamps)-1):
         newStamp = dt[i] #Calculating all values
-        frequency = (1/newStamp)/8
+        frequency = (1/newStamp)/16
         angularVelocity = 2*math.pi*frequency
         RPM = angularVelocity * (60/ (2*math.pi))
 
@@ -85,7 +85,9 @@ def getK(angVel,angAccel, inertia):
     kVal2 = 0.0002  #comment this line if using calculation line of code
     for i in range(len(angVel) -1):
         if angAccel[i] < 0:
+            
             kVal = (-inertia*angAccel[i])/(angVel[i+1])**2
+            #print("Kvalues: ", kVal)
         else:
             kVal = 0.0002
 
