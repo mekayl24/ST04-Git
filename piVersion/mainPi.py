@@ -12,17 +12,17 @@ from moving_averagePi import moving_average
 
 
 
-TimeStamps = process_file("C:\\Users\\mekay\\Documents\\GitHub\\ST04\\ktest.txt")
+TimeStamps = process_file("C:\\Users\\mekay\\Documents\\GitHub\\ST04\\spin up then spin down.txt")
 
 
 ###Moving Average Filter
 
-dt = getsmoothedDt(TimeStamps)
+#dt = getsmoothedDt(TimeStamps)
 
 
 
 ###No Filter
-"""
+
 dtraw = []
 for i in range(len(TimeStamps)-1):
     newStamp = TimeStamps[i+1] - TimeStamps[i] #Calculating all values
@@ -30,7 +30,7 @@ for i in range(len(TimeStamps)-1):
 
 dt = dtraw
 
-"""
+
 
 ###SavGol Filter
 """
@@ -162,8 +162,8 @@ plt.ylabel('Power (Watts)')
 plt.title('Power within a single stroke')
 
 
-plt.xlim(0, 50)  # Adjust x-axis limits to zoom in on a specific section
-plt.ylim(0, 10)  # Adjust y-axis limits if needed
+plt.xlim(0, 14)  # Adjust x-axis limits to zoom in on a specific section
+#plt.ylim(0, 50)  # Adjust y-axis limits if needed
 # Add gridlines
 plt.grid(True)
 
@@ -212,11 +212,11 @@ plt.plot(TimeStamps[timeInitIndex:timeFinIndex], RPMvalues[pwrInitIndex-1:pwrFin
 
 # Add labels and title
 plt.xlabel('Time (seconds)')
-plt.ylabel('Ang Velocity (rad/s)')
-plt.title('Ang Velocity within a stroke (Moving Average Filter, 8 Magnets))')
+plt.ylabel('Ang Velocity (RPM)')
+plt.title('Ang Velocity within a session (No filter, 16 Magnets))')
 
-plt.xlim(17.5, 18.5)  # Adjust x-axis limits to zoom in on a specific section
-plt.ylim(0, 60)  # Adjust y-axis limits if needed
+plt.xlim(0, 14)  # Adjust x-axis limits to zoom in on a specific section
+plt.ylim(0, 650)  # Adjust y-axis limits if needed
 
 # Add gridlines
 plt.grid(True)
@@ -227,5 +227,33 @@ plt.legend()
 # Adjust plot layout
 plt.tight_layout()
 
-plt.show()
+
 # Show the plot
+
+
+# Ang acceleration plo
+
+
+plt.figure()
+plt.plot(TimeStamps[timeInitIndex:timeFinIndex], angAccel[pwrInitIndex:pwrFinIndex], marker='o', linestyle='-',
+         color='b', label='Data Points') #Plotting whole curve
+
+
+# Add labels and title
+plt.xlabel('Time (seconds)')
+plt.ylabel('Angular Accleration)')
+plt.title('Acceleration throughout session')
+
+
+#plt.xlim(0, 14)  # Adjust x-axis limits to zoom in on a specific section
+#plt.ylim(0, 50)  # Adjust y-axis limits if needed
+# Add gridlines
+plt.grid(True)
+
+# Show legend
+plt.legend()
+
+# Adjust plot layout
+plt.tight_layout()
+
+plt.show()

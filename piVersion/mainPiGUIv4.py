@@ -202,7 +202,9 @@ class GraphWindow:
             
             
             if len(angVelraw) >= 5:
-                    angVel= savgol_filter(angVelraw, window_length=5, polyorder=3)
+                    
+                    angVel = angVelraw #uncomment for no velocity filter 
+                    #angVel= savgol_filter(angVelraw, window_length=5, polyorder=3)    #uncomment for savgol filter
             else:
                     # If there are not enough data points, use the original data without smoothing
                 angVel = angVelraw
