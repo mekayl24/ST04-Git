@@ -50,6 +50,10 @@ avg_velocity = 0
 
 interval_start_time = initial_time 
 
+plot1 = []
+
+plot2 = []
+
 
 
 
@@ -62,33 +66,29 @@ def get_sensor_data():      # returns GPIO data from Raspberry Pi
     return GPIO.input(gpio_pin)
 
 
-def update_data():
+def update_data(): #Main function to record the timestamps from hall effect sensor
     global TimeStamps, sensor_change, initial_time, appliedPower, interval_start_time, dt, dtTest
     
-    while True:         
+    while True:             
         gpio_data = get_sensor_data()
         with lock:
-            if gpio_data == 0 and sensor_change[-1] != 0:       #
+            if gpio_data == 0 and sensor_change[-1] != 0:       #Checks if magnet is sensed by sensor and if it changed from 0 to 1
                 timestamp = time.time() - initial_time
-                TimeStamps.append(timestamp)
-                print("TimeStamps: ", TimeStamps[-1])
-                if len(TimeStamps) > 2:
-                    
-                    dtTest = (TimeStamps[-1] - TimeStamps[-2])
-                    #print("TimeStamps: ", TimeStamps[-1])
-                    #print("Dt: ", dtTest)
+                TimeStamps.append(timestamp) #adding timestamp to list
+                #print("TimeStamps: ", TimeStamps[-1])
+            
                 
-                sensor_change.append(0)
+                sensor_change.append(0) #This list adds a 0 to tell the program that we accounted for this magnet
             elif gpio_data == 1:
-                sensor_change.append(1)
+                sensor_change.append(1) #adds a 1 if no magnet is sensed so we can run the 
         
-        current_time = time.time()
-        if current_time - interval_start_time >= 5 & len(appliedPower)> 1:
-            with lock:
-                # Update max_power to the maximum power recorded in the previous 5-second interval
-                max_power = max(appliedPower)
-                # Update the start time of the current 5-second interval
-                interval_start_time = current_time
+        current_time = time.time()  #
+        # if current_time - interval_start_time >= 5 & len(appliedPower)> 1:
+        #     with lock:
+        #         # Update max_power to the maximum power recorded in the previous 5-second interval
+        #         max_power = max(appliedPower)
+        #         # Update the start time of the current 5-second interval
+        #         interval_start_time = current_time
         
         time.sleep(0.01)  # Adjust sleep time as needed
 
@@ -97,40 +97,17 @@ update_thread = threading.Thread(target=update_data)
 update_thread.daemon = True  # Daemonize the thread so it exits when the main program ends
 update_thread.start()
 
- #un comment to do first plot
-"""
-fig1, ax1 = plt.subplots()
-xandy1, = ax1.plot([], [], lw=2)
-ax1.set_title('Real-time Applied Power Plot')
-ax1.set_xlabel('Timestamp')
-ax1.set_ylabel('Applied Power')
-
-
-
-# Plot initialization for angular velocity
-fig2, ax2 = plt.subplots()
-xandy2, = ax2.plot([], [], lw=2)
-ax2.set_title('Real-time Angular Velocity Plot')
-ax2.set_xlabel('Timestamp')
-ax2.set_ylabel('Angular Velocity')
-
-"""
-#un comment to do third plot
-
-plot1 = []
-
-plot2 = []
 
 
 
 
-class StartWindow:
+class StartWindow:  #GUI start window using Tkinter
     def __init__(self, root):
         self.root = root
         self.root.title("Start Window")
         self.root.attributes('-fullscreen', True)
 
-        self.background_image = tk.PhotoImage(file="dark water 2.png")
+        self.background_image = tk.PhotoImage(file="dark water 2.png") #The image for the backgorund in start menu
         self.background_label = tk.Label(root, image=self.background_image)
         self.background_label.place(x=0, y=0, relwidth=1, relheight=1)
         
@@ -140,7 +117,7 @@ class StartWindow:
         self.enter_button = tk.Button(root, text="Enter", bg="black", fg="white",font=("Arial Black", 20,"bold"), relief="raised", borderwidth=3, cursor="hand2", command=self.switch_to_graph)
         self.enter_button.pack()
 
-    def switch_to_graph(self):
+    def switch_to_graph(self):  #switching screens
         self.root.attributes('-fullscreen', False)
         self.root.destroy()
         GraphWindow()
@@ -197,14 +174,7 @@ class GraphWindow:
         self.running = False
         self.start_time = None
         
-        """self.ax1.set_xlim(0, 5)  # Set custom x-axis limits
-        self.ax1.set_ylim(0, 6)  # Set custom y-axis limits
-        self.ax1.set_title("Custom Title for Applied Power")  # Set custom title for the first plot
 
-        self.ax2.set_xlim(0, 7)  # Set custom x-axis limits for the second plot
-        self.ax2.set_ylim(0, 9)  # Set custom y-axis limits for the second plot
-        self.ax2.set_title("Custom Title for Angular Velocity")  # Set custom title for the second plot
-         """   
     
     def start_timer(self):
         if not self.running:
@@ -256,25 +226,16 @@ class GraphWindow:
                 
             if len(TimeStamps) >= 3:
                 newTimeStampsPwr = TimeStamps[2:]
-                # Plot applied power
-                #xandy1.set_data(newTimeStampsPwr, appliedPower)
-                #ax1.relim()
-                #ax1.autoscale_view()
-                #ax1.set_xlim(newTimeStampsPwr[-1] - 5, newTimeStampsPwr[-1])
+
                 plot1 = [newTimeStampsPwr, appliedPower]
                 self.ax1.relim()
                 self.ax1.autoscale_view()
-                #self.ax1.set_xlim(0, 10)  # Changed this line
-                #print(newTimeStampsPwr[-1]-5, newTimeStampsPwr[-1])
+         
             if len(TimeStamps) >= 2:
                 newTimeStampsVel = TimeStamps[1:]
             # Plot angular velocity
                 plot2 = [newTimeStampsVel, angVel]
-            #print("NewTimestampspwr: ", newTimeStampsPwr)
-            #print("Applied Power:  ", appliedPower)
-            #print("newtimestamps vel: ",newTimeStampsVel)
-            #print("angVel: ", angVel)
-            #print("angvel raw: ", angVelraw)
+         
             
             x = newTimeStampsPwr
             y = appliedPower
@@ -307,11 +268,6 @@ class GraphWindow:
         self.ax2.set_xlabel('Time (seconds)')  # Add x-axis title for the second subplot
         self.ax2.set_ylabel('Angular Velocity (rad/s)')  # Add y-axis title for the second subplot
 
-        #self.ax1.set_xlim(0, 10)
-        #self.ax1.set_ylim(0, 100)
-
-        #self.ax2.set_xlim(0, 20)
-        #self.ax2.set_ylim(0, 50)
 
         if len(TimeStamps) > 2:
             
@@ -323,9 +279,6 @@ class GraphWindow:
     # Update the x-axis limits of the second subplot
             #self.ax2.set_xlim(interval_start_time, TimeStamps[-1])
 
-        
-        
-        
         self.canvas.draw()
 
         if self.running:
