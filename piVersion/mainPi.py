@@ -12,7 +12,7 @@ from moving_averagePi import moving_average
 
 
 
-TimeStamps = process_file("C:\\Users\\mekay\\Documents\\GitHub\\ST04\\spin up then spin down.txt")
+TimeStamps = process_file("C:\\Users\\mekay\\Documents\\GitHub\\ST04\\Trials\\Trial 9 Data.txt")
 
 
 ###Moving Average Filter

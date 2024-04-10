@@ -7,6 +7,9 @@ import time
 import RPi.GPIO as GPIO
 from moving_averagePi import moving_average
 from scipy.signal import savgol_filter
+
+
+
 # Initialize GPIO pin
 gpio_pin = 23
 GPIO.setmode(GPIO.BCM)
@@ -21,6 +24,9 @@ dtTest = []
 #max_power = 0.0
 
 interval_start_time = initial_time 
+
+
+
 # Lock for thread safety
 lock = threading.Lock()
 
@@ -40,11 +46,6 @@ def update_data():
                 timestamp = time.time() - initial_time
                 TimeStamps.append(timestamp)
                 print("TimeStamps: ", TimeStamps[-1])
-                if len(TimeStamps) > 2:
-                    
-                    dtTest = (TimeStamps[-1] - TimeStamps[-2])
-                    #print("TimeStamps: ", TimeStamps[-1])
-                    #print("Dt: ", dtTest)
                 
                 sensor_change.append(0)
             elif gpio_data == 1:
@@ -120,7 +121,7 @@ def animate_power(frame):
         
         
         if len(angVelraw) >= 5:
-                angVel= savgol_filter(angVelraw, window_length=5, polyorder=3)
+                angVel= savgol_filter(angVelraw, window_length=5, polyorder=3)  #using sav gol filter on velocity values
         else:
                 # If there are not enough data points, use the original data without smoothing
             angVel = angVelraw
@@ -135,11 +136,11 @@ def animate_power(frame):
         if len(TimeStamps) >= 3:
             newTimeStampsPwr = TimeStamps[2:]
             # Plot applied power
-            xandy1.set_data(newTimeStampsPwr, appliedPower)
+            xandy1.set_data(newTimeStampsPwr, appliedPower) #set the data to plot in the animation function 
             ax1.relim()
             ax1.autoscale_view()
-            ax1.set_xlim(newTimeStampsPwr[-1] - 5, newTimeStampsPwr[-1])
-            print(newTimeStampsPwr[-1] - 5, newTimeStampsPwr[-1])
+            ax1.set_xlim(newTimeStampsPwr[-1] - 5, newTimeStampsPwr[-1]) #Plotting the most recent 5 seconds
+           # print(newTimeStampsPwr[-1] - 5, newTimeStampsPwr[-1])
     
     return xandy1
 

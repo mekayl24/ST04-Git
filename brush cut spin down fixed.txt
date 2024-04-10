@@ -284,8 +284,6 @@ TimeStamps:  17.6574285030365
 TimeStamps:  17.688143968582153
 TimeStamps:  17.75920295715332
 TimeStamps:  17.78988027572632
-/usr/lib/python3/dist-packages/scipy/signal/_arraytools.py:45: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
-  b = a[a_slice]
 TimeStamps:  17.961549043655396
 TimeStamps:  17.999243021011353
 TimeStamps:  18.070411920547485
